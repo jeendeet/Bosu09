@@ -1,0 +1,116 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+#define dW digitalWrite
+#define SERVO_FREQ 50
+#define sensorOut 8
+int frequencyR = 0, frequencyB = 0;
+uint8_t servonum = 0;
+int n=0, m=0;
+struct sonap{
+  int g;
+  int r;
+  };
+sonap sonap1={0,0};
+void setup() {
+  Serial.begin(9600);
+  //cambienmau
+  for (int i=4;i<13;i++){if (i!=8) pinMode(i,OUTPUT);}
+  pinMode(8, INPUT);pinMode(13, INPUT);
+  dW(4,HIGH);dW(9,HIGH);
+  dW(5,LOW);dW(10,LOW);
+  //servo driver
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000); //23-27MHz
+  pwm.setPWMFreq(SERVO_FREQ);
+  delay(10);
+}
+
+void loop() {
+  lapvo();
+  if (n>0) laploxo();
+  else if (n>2) sonap1 = lapnap(m, sonap1.g, sonap1.r);
+  else if (n>1) m=lapngoi();
+  xoayban();
+  n++;
+}
+
+void lapvo(){}
+void laploxo(){
+  while(1){
+  servo(2,217,189,1);
+  if(qd(2)) return;
+  delay(2000);
+  }
+}
+
+int lapngoi(){
+  while(qd(3)){
+    int mau = cambienmau(0);
+  servo(2,380,180,1);
+  return mau;  
+  }
+}
+
+struct sonap lapnap(int mau, int g, int r){
+  if (mau ==1){
+    if (g==0){;
+      while(qd(5)){  
+        int maun= cambienmau(5);
+        if(maun==1) {servo(3,390,284,1); break;}
+        else if(maun=0) {servo(3,284,180,0); r+=1;}
+      }
+    }
+    servo(4,390,284,1);  
+  }
+  else {
+    if (r==0){;
+      while(qd(5)){  
+        int maun= cambienmau(5);
+        if(maun==1) {servo(3,284,180,0); break;}
+        else if(maun=0) {servo(4,284,180,0); g+=1;}
+      }
+    }
+    servo(4,284,180,0);
+    }
+  struct sonap sonap1;
+  sonap1.g=g;
+  sonap1.r=r;
+  return sonap1;    
+}
+void xoayban(){}
+void servo(uint8_t num,uint16_t MAX,uint16_t MIN,uint8_t direct){
+  if(direct==1){
+    for (uint16_t pulselen = MIN; pulselen < MAX; pulselen++) {
+    pwm.setPWM(num, 0, pulselen);}
+    delay(1000);
+    for (uint16_t pulselen = MIN; pulselen > MAX; pulselen--) {
+    pwm.setPWM(num, 0, pulselen);}
+  }
+  else{
+    for (uint16_t pulselen = MAX; pulselen > MIN; pulselen--) {
+    pwm.setPWM(num, 0, pulselen);}
+    delay(1000);
+    for (uint16_t pulselen = MAX; pulselen > MIN; pulselen++) {
+    pwm.setPWM(num, 0, pulselen);}
+  }
+}
+int cambienmau(int i){
+  dW(6+i,LOW);dW(7+i,LOW);
+  frequencyR = pulseIn(8+i, LOW);
+  // Printing the value on the serial monitor
+  Serial.print("R= ");//printing name
+  Serial.println(frequencyR);//printing RED color frequency
+  delay(100);
+  dW(6+i,LOW);dW(7+i,HIGH);
+  frequencyB = pulseIn(sensorOut, LOW);
+  // Printing the value on the serial monitor
+  Serial.print("B= ");//printing name
+  Serial.println(frequencyB);//printing RED color frequency
+  delay(100);
+  if(frequencyR<=frequencyB)
+    {Serial.println("RED"); return 0;}
+  else
+    {Serial.println("BLUE"); return 1;}
+}
+bool qd(int num){return 1;}
